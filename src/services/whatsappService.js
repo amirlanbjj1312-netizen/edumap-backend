@@ -34,12 +34,23 @@ const sendWhatsAppMessage = async (config, request) => {
     },
   };
 
-  await axios.post(config.whatsapp.apiUrl, payload, {
-    headers: {
-      Authorization: `Bearer ${config.whatsapp.token}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  try {
+    await axios.post(config.whatsapp.apiUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${config.whatsapp.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    if (error.response) {
+      const { status, data } = error.response;
+      const details = typeof data === 'object' ? JSON.stringify(data) : String(data);
+      const err = new Error(`WhatsApp API ${status}: ${details}`);
+      err.response = data;
+      throw err;
+    }
+    throw error;
+  }
 
   return { skipped: false };
 };
